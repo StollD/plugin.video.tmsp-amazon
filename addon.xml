@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<addon id="plugin.video.tmsp-amazon" name="Prime Video (TMSP)" provider-name="tmsp" version="1.0.0">
+    <requires>
+        <import addon="xbmc.python" version="3.0.0" />
+        <import addon="script.module.inputstreamhelper" />
+        <import addon="script.module.pycryptodome" />
+        <import addon="script.module.requests" />
+        <import addon="script.module.beautifulsoup4" />
+    </requires>
+    <extension library="default.py" point="xbmc.python.pluginsource">
+        <provides>video</provides>
+    </extension>
+    <extension point="xbmc.addon.metadata">
+        <summary>Amazon Prime Video</summary>
+        <description>Barebones Amazon Prime Video addon that supports 4k playback.</description>
+        <disclaimer>This addon is useless if you don't synthesize your own .strm files, because there is no actual GUI.</disclaimer>
+        <provides>video</provides>
+        <platform>all</platform>
+        <license>GPLv3</license>
+    </extension>
+</addon>

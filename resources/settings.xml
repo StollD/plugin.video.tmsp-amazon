@@ -1,0 +1,6 @@
+<settings>
+    <category label="Amazon Prime">
+        <setting id="enable_hdr10" type="bool" label="Enable HDR10" default="false" />
+        <setting id="enable_dovi" type="bool" label="Enable Dolby Vision" default="false" />
+    </category>
+</settings>

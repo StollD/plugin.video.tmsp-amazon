@@ -97,6 +97,16 @@ def play(asin: str) -> None:
 
     data = resp.json()
 
+    if "error" in data:
+        err = data["error"]
+    elif "PlaybackUrls" in data.get("errorsByResource", ""):
+        err = data["errorsByResource"]["PlaybackUrls"]
+    else:
+        err = None
+
+    if err is not None:
+        raise Exception("{}: {}".format(err["errorCode"], err["message"]))
+
     sets = data["playbackUrls"]["urlSets"]
     host = sets[data["playbackUrls"]["defaultUrlSetId"]]
 

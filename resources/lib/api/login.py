@@ -154,27 +154,19 @@ class AmazonLogin:
                 "app_version": APP_VERSION,
                 "device_model": DEVICE_NAME,
                 "os_version": OS_VERSION,
-                "software_version": "130050002",
             },
             "requested_token_type": [
                 "bearer",
-                "mac_dms",
-                "store_authentication_cookie",
                 "website_cookies",
             ],
-            "cookies": {"domain": self.url.domain, "website_cookies": []},
-            "device_metadata": {
-                "device_os_family": "android",
-                "device_type": DEVICE_TYPE,
-                "device_serial": self.serial,
-                "mac_address": "{:012X}".format(uuid.getnode()),
-                "manufacturer": MANUFACTURER,
-                "model": DEVICE_NAME,
-                "os_version": "30",
-                "android_id": "f1c56f6030b048a7",
-                "product": DEVICE_NAME,
+            "requested_extensions": [
+                "device_info",
+                "customer_info",
+            ],
+            "cookies": {
+                "domain": "." + self.url.domain,
+                "website_cookies": [],
             },
-            "requested_extensions": ["device_info", "customer_info"],
         }
 
         resp = requests.post(self.url.register(), headers=HEADERS, json=data)

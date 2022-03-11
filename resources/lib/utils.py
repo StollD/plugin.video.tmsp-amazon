@@ -4,6 +4,7 @@ import os.path
 import uuid
 from typing import *
 
+import xbmc
 import xbmcaddon
 import xbmcvfs
 
@@ -74,3 +75,14 @@ def device_id() -> str:
             serial = f.read()
 
     return serial
+
+
+def supported_resolution() -> str:
+    # Android devices with Widevine L1 can decrypt UHD streams
+    # TODO: Check if Android devices with L3 fallback gracefully
+    if xbmc.getCondVisibility("system.platform.android"):
+        return "UHD"
+
+    # Other platforms (PC) can only get SD streams
+    # Higher quality requires VMP verification
+    return "SD"

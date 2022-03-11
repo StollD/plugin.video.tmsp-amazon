@@ -99,7 +99,7 @@ def play(asin: str) -> None:
         "marketplaceID": marketplace,
         "desiredResources": "PlaybackUrls,SubtitleUrls,ForcedNarratives,TransitionTimecodes",
         "deviceHdrFormatsOverride": ",".join(hdr_formats),
-        "deviceVideoQualityOverride": "UHD",
+        "deviceVideoQualityOverride": supported_resolution(),
         "videoMaterialType": "Feature",
     })
 
@@ -138,7 +138,7 @@ def play(asin: str) -> None:
         "marketplaceID": marketplace,
         "desiredResources": "Widevine2License",
         "deviceHdrFormatsOverride": ",".join(hdr_formats),
-        "deviceVideoQualityOverride": "UHD",
+        "deviceVideoQualityOverride": supported_resolution(),
         "videoMaterialType": "Feature",
     })
 

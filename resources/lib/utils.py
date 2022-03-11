@@ -81,18 +81,18 @@ def device_id() -> str:
     return serial
 
 
-def device_type():
+def device_type() -> str:
     if xbmc.getCondVisibility("system.platform.android"):
         return DEVICE_TYPE_ANDROID
 
     return DEVICE_TYPE_BROWSER
 
 
-def is_android():
+def is_android() -> bool:
     return device_type() == DEVICE_TYPE_ANDROID
 
 
-def is_browser():
+def is_browser() -> bool:
     return device_type() == DEVICE_TYPE_BROWSER
 
 

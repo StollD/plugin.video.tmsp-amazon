@@ -151,6 +151,8 @@ def play(asin: str) -> None:
         "Authorization": "Bearer " + auth.token.access,
     }
 
+    headers.update(HEADERS)
+
     lic += "|" + urlencode(headers)
     lic += "|widevine2Challenge=B{SSM}&includeHdcpTestKeyInLicense=true"
     lic += "|JBlicense;hdcpEnforcementResolutionPixels"

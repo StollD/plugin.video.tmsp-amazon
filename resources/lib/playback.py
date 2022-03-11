@@ -12,21 +12,8 @@ from .api import DEVICE_NAME, DEVICE_TYPE, HEADERS, AmazonAuth, AmazonURL
 from .auth import login
 from .utils import *
 
-
-def play(asin: str) -> None:
-    # If no token can be loaded, start the login process
-    token = load_token()
-    if token is None:
-        token = login()
-
-    ish = Helper("mpd", drm="com.widevine.alpha")
-    if not ish.check_inputstream():
-        raise Exception("Inputstream.Adaptive not active")
-
-    url = AmazonURL("amazon.com")
-
-    # Query Amazon for the marketplace of our device
-    data = {
+def base_request(data) -> Dict[str, str]:
+    base = {
         "deviceID": device_id(),
         "deviceTypeId": DEVICE_TYPE,
         "format": "json",
@@ -34,20 +21,60 @@ def play(asin: str) -> None:
         "firmware": "1",
     }
 
-    query = urlencode(data)
-    resp = requests.get(url.config() + "?" + query, headers=HEADERS)
+    base.update(data)
+    return base
+
+
+def playback_request(data) -> Dict[str, str]:
+    base = {
+        "audioTrackId": "all",
+        "consumptionType": "Streaming",
+        "deviceBitrateAdaptationsOverride": "CVBR,CBR",
+        "deviceDrmOverride": "CENC",
+        "deviceProtocolOverride": "Https",
+        "deviceStreamingTechnologyOverride": "DASH",
+        "languageFeature": "MLFv2",
+        "resourceUsage": "ImmediateConsumption",
+        "subtitleFormat": "TTMLv2",
+        "supportedDRMKeyScheme": "DUAL_KEY",
+    }
+
+    base.update(data)
+    return base_request(base)
+
+
+def get_endpoint() -> AmazonURL:
+    url = AmazonURL("amazon.com")
+
+    data = base_request({})
+    resp = requests.get(url.config() + "?" + urlencode(data), headers=HEADERS)
     if resp.status_code != 200:
         raise Exception("Failed to get region config")
 
     data = resp.json()
 
     host = data["territoryConfig"]["defaultVideoWebsite"]
-    host = host.lstrip("https://www.")
+    host = host.lstrip("https://")
+    host = host.lstrip("www.")
 
     api = data["customerConfig"]["baseUrl"]
     marketplace = data["customerConfig"]["marketplaceId"]
 
-    url = AmazonURL(host, api)
+    return AmazonURL(host, api), marketplace
+
+
+def play(asin: str) -> None:
+    # If no token can be loaded, start the login process
+    token = load_token()
+    if token is None:
+        token = login()
+
+    # Check if IS.A is available
+    ish = Helper("mpd", drm="com.widevine.alpha")
+    if not ish.check_inputstream():
+        raise Exception("Inputstream.Adaptive not active")
+
+    url, marketplace = get_endpoint()
     auth = AmazonAuth(token, url, save_token)
 
     session = requests.Session()
@@ -67,29 +94,14 @@ def play(asin: str) -> None:
         hdr_formats.append("None")
 
     # Grab the MPD from Amazon
-    data = {
+    data = playback_request({
         "asin": asin,
-        "deviceID": device_id(),
-        "deviceTypeId": DEVICE_TYPE,
         "marketplaceID": marketplace,
-        "format": "json",
-        "version": "1",
-        "firmware": "1",
-        "audioTrackId": "all",
-        "consumptionType": "Streaming",
-        "videoMaterialType": "Feature",
         "desiredResources": "PlaybackUrls,SubtitleUrls,ForcedNarratives,TransitionTimecodes",
-        "subtitleFormat": "TTMLv2",
-        "deviceDrmOverride": "CENC",
-        "languageFeature": "MLFv2",
-        "deviceProtocolOverride": "Https",
         "deviceHdrFormatsOverride": ",".join(hdr_formats),
         "deviceVideoQualityOverride": "UHD",
-        "supportedDRMKeyScheme": "DUAL_KEY",
-        "resourceUsage": "ImmediateConsumption",
-        "deviceBitrateAdaptationsOverride": "CVBR,CBR",
-        "deviceStreamingTechnologyOverride": "DASH",
-    }
+        "videoMaterialType": "Feature",
+    })
 
     resp = session.get(url.playback() + "?" + urlencode(data))
     if resp.status_code != 200:
@@ -97,6 +109,7 @@ def play(asin: str) -> None:
 
     data = resp.json()
 
+    # Handle errors
     if "error" in data:
         err = data["error"]
     elif "PlaybackUrls" in data.get("errorsByResource", ""):
@@ -120,29 +133,14 @@ def play(asin: str) -> None:
     ##
 
     # Prepare the widevine license URL
-    data = {
+    data = playback_request({
         "asin": asin,
-        "deviceID": device_id(),
-        "deviceTypeId": DEVICE_TYPE,
         "marketplaceID": marketplace,
-        "format": "json",
-        "version": "1",
-        "firmware": "1",
-        "audioTrackId": "all",
-        "consumptionType": "Streaming",
-        "videoMaterialType": "Feature",
         "desiredResources": "Widevine2License",
-        "subtitleFormat": "TTMLv2",
-        "deviceDrmOverride": "CENC",
-        "languageFeature": "MLFv2",
-        "deviceProtocolOverride": "Https",
         "deviceHdrFormatsOverride": ",".join(hdr_formats),
         "deviceVideoQualityOverride": "UHD",
-        "supportedDRMKeyScheme": "DUAL_KEY",
-        "resourceUsage": "ImmediateConsumption",
-        "deviceBitrateAdaptationsOverride": "CVBR,CBR",
-        "deviceStreamingTechnologyOverride": "DASH",
-    }
+        "videoMaterialType": "Feature",
+    })
 
     lic = url.playback() + "?" + urlencode(data)
 

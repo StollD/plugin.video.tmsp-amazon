@@ -8,14 +8,15 @@ import xbmcgui
 import xbmcplugin
 from inputstreamhelper import Helper
 
-from .api import DEVICE_NAME, DEVICE_TYPE, HEADERS, AmazonAuth, AmazonURL
+from .api import DEVICE_NAME, HEADERS, AmazonAuth, AmazonURL
 from .auth import login
 from .utils import *
+
 
 def base_request(data) -> Dict[str, str]:
     base = {
         "deviceID": device_id(),
-        "deviceTypeId": DEVICE_TYPE,
+        "deviceTypeId": device_type(),
         "format": "json",
         "version": "1",
         "firmware": "1",
@@ -26,13 +27,27 @@ def base_request(data) -> Dict[str, str]:
 
 
 def playback_request(data) -> Dict[str, str]:
+    addon = xbmcaddon.Addon()
+    hdr_formats = []
+
+    if addon.getSettingBool("enable_dovi"):
+        hdr_formats.append("DolbyVision")
+
+    if addon.getSettingBool("enable_hdr10"):
+        hdr_formats.append("Hdr10")
+
+    if len(hdr_formats) == 0:
+        hdr_formats.append("None")
+
     base = {
         "audioTrackId": "all",
         "consumptionType": "Streaming",
         "deviceBitrateAdaptationsOverride": "CVBR,CBR",
         "deviceDrmOverride": "CENC",
+        "deviceHdrFormatsOverride": ",".join(hdr_formats),
         "deviceProtocolOverride": "Https",
         "deviceStreamingTechnologyOverride": "DASH",
+        "deviceVideoQualityOverride": supported_resolution(),
         "languageFeature": "MLFv2",
         "resourceUsage": "ImmediateConsumption",
         "subtitleFormat": "TTMLv2",
@@ -57,7 +72,10 @@ def get_endpoint() -> AmazonURL:
     host = host.lstrip("https://")
     host = host.lstrip("www.")
 
-    api = data["customerConfig"]["baseUrl"]
+    region = data["customerConfig"]["homeRegion"].lower()
+    region = "" if "na" in region else "-" + region
+
+    api = "atv-ps{}.{}".format(region, host)
     marketplace = data["customerConfig"]["marketplaceId"]
 
     return AmazonURL(host, api), marketplace
@@ -75,33 +93,21 @@ def play(asin: str) -> None:
         raise Exception("Inputstream.Adaptive not active")
 
     url, marketplace = get_endpoint()
-    auth = AmazonAuth(token, url, False, save_token)
+    auth = AmazonAuth(token, url, is_browser(), save_token)
 
     session = requests.Session()
     session.auth = auth
     session.headers.update(HEADERS)
 
-    addon = xbmcaddon.Addon()
-    hdr_formats = []
-
-    if addon.getSettingBool("enable_dovi"):
-        hdr_formats.append("DolbyVision")
-
-    if addon.getSettingBool("enable_hdr10"):
-        hdr_formats.append("Hdr10")
-
-    if len(hdr_formats) == 0:
-        hdr_formats.append("None")
-
     # Grab the MPD from Amazon
-    data = playback_request({
-        "asin": asin,
-        "marketplaceID": marketplace,
-        "desiredResources": "PlaybackUrls,SubtitleUrls,ForcedNarratives,TransitionTimecodes",
-        "deviceHdrFormatsOverride": ",".join(hdr_formats),
-        "deviceVideoQualityOverride": supported_resolution(),
-        "videoMaterialType": "Feature",
-    })
+    data = playback_request(
+        {
+            "asin": asin,
+            "marketplaceID": marketplace,
+            "desiredResources": "PlaybackUrls,SubtitleUrls,ForcedNarratives,TransitionTimecodes",
+            "videoMaterialType": "Feature",
+        }
+    )
 
     resp = session.get(url.playback() + "?" + urlencode(data))
     if resp.status_code != 200:
@@ -133,23 +139,20 @@ def play(asin: str) -> None:
     ##
 
     # Prepare the widevine license URL
-    data = playback_request({
-        "asin": asin,
-        "marketplaceID": marketplace,
-        "desiredResources": "Widevine2License",
-        "deviceHdrFormatsOverride": ",".join(hdr_formats),
-        "deviceVideoQualityOverride": supported_resolution(),
-        "videoMaterialType": "Feature",
-    })
+    data = playback_request(
+        {
+            "asin": asin,
+            "marketplaceID": marketplace,
+            "desiredResources": "Widevine2License",
+            "videoMaterialType": "Feature",
+        }
+    )
 
     lic = url.playback() + "?" + urlencode(data)
 
-    headers = {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "Authorization": "Bearer " + auth.token.access,
-    }
-
+    headers = {"Content-Type": "application/x-www-form-urlencoded"}
     headers.update(HEADERS)
+    headers.update(auth.get_headers())
 
     lic += "|" + urlencode(headers)
     lic += "|widevine2Challenge=B{SSM}&includeHdcpTestKeyInLicense=true"

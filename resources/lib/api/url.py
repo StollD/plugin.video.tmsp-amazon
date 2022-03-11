@@ -1,7 +1,5 @@
 from typing import *
 
-from .constants import AMAZONVIDEO_ENDPOINT
-
 
 class AmazonURL:
     domain: str
@@ -30,6 +28,4 @@ class AmazonURL:
         if self.api is None:
             return None
 
-        return "https://{}.{}/cdp/catalog/GetPlaybackResources".format(
-            AMAZONVIDEO_ENDPOINT, self.api
-        )
+        return "https://{}/cdp/catalog/GetPlaybackResources".format(self.api)

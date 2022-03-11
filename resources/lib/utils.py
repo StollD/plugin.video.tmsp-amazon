@@ -8,7 +8,7 @@ import xbmc
 import xbmcaddon
 import xbmcvfs
 
-from .api import AmazonToken
+from .api import DEVICE_TYPE_ANDROID, DEVICE_TYPE_BROWSER, AmazonToken
 
 
 def save_token(token: AmazonToken) -> None:
@@ -81,10 +81,25 @@ def device_id() -> str:
     return serial
 
 
+def device_type():
+    if xbmc.getCondVisibility("system.platform.android"):
+        return DEVICE_TYPE_ANDROID
+
+    return DEVICE_TYPE_BROWSER
+
+
+def is_android():
+    return device_type() == DEVICE_TYPE_ANDROID
+
+
+def is_browser():
+    return device_type() == DEVICE_TYPE_BROWSER
+
+
 def supported_resolution() -> str:
     # Android devices with Widevine L1 can decrypt UHD streams
     # TODO: Check if Android devices with L3 fallback gracefully
-    if xbmc.getCondVisibility("system.platform.android"):
+    if is_android():
         return "UHD"
 
     # Other platforms (PC) can only get SD streams

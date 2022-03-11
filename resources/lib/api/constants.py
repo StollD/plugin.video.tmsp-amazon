@@ -1,9 +1,11 @@
 from typing import *
 
+# TODO: Check if the impersonation is needed?
+#       We shouldn't lie if we dont have to.
+
 # This is the app we are impersonating
 APP_NAME = "com.amazon.avod.thirdpartyclient"
 APP_VERSION = "296016847"
-DEVICE_TYPE = "A43PXU4ZN2AL1"
 
 # This is the device we are impersonating
 DEVICE_NAME = "mdarcy/nvidia/SHIELD Android TV"
@@ -17,5 +19,5 @@ HEADERS = {
     "User-Agent": "Dalvik/2.1.0 (Linux; U; Android 11; SHIELD Android TV RQ1A.210105.003)",
 }
 
-# Endpoint for third party devices running Android 9 to 11
-AMAZONVIDEO_ENDPOINT = "ab3cs84k69ya"
+DEVICE_TYPE_ANDROID = "A43PXU4ZN2AL1"
+DEVICE_TYPE_BROWSER = "AOAGZA014O5RE"

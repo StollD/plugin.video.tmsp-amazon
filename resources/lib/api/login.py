@@ -48,7 +48,7 @@ class AmazonLogin:
         return base64.urlsafe_b64encode(h.digest()).rstrip(b"=")
 
     def client_id(self) -> str:
-        return (self.serial.encode() + b"#" + DEVICE_TYPE.encode()).hex()
+        return (self.serial.encode() + b"#" + DEVICE_TYPE_ANDROID.encode()).hex()
 
     def build_oauth(self) -> Tuple[str, bytes]:
         verifier = self.create_code_verifier()
@@ -148,7 +148,7 @@ class AmazonLogin:
             },
             "registration_data": {
                 "domain": "DeviceLegacy",
-                "device_type": DEVICE_TYPE,
+                "device_type": DEVICE_TYPE_ANDROID,
                 "device_serial": self.serial,
                 "app_name": APP_NAME,
                 "app_version": APP_VERSION,

@@ -75,7 +75,7 @@ def play(asin: str) -> None:
         raise Exception("Inputstream.Adaptive not active")
 
     url, marketplace = get_endpoint()
-    auth = AmazonAuth(token, url, save_token)
+    auth = AmazonAuth(token, url, False, save_token)
 
     session = requests.Session()
     session.auth = auth

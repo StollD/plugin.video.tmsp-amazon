@@ -11,13 +11,19 @@ from .url import AmazonURL
 class AmazonAuth(requests.auth.AuthBase):
     token: AmazonToken
     url: AmazonURL
+    use_cookies: bool
     on_save: Callable[[AmazonToken], None]
 
     def __init__(
-        self, token: AmazonToken, url: AmazonURL, on_save: Callable[[AmazonToken], None]
+        self,
+        token: AmazonToken,
+        url: AmazonURL,
+        use_cookies: bool,
+        on_save: Callable[[AmazonToken], None],
     ):
         self.token = token
         self.url = url
+        self.use_cookies = use_cookies
         self.on_save = on_save
 
     def refresh(self) -> None:
@@ -51,10 +57,24 @@ class AmazonAuth(requests.auth.AuthBase):
         ).timestamp()
         self.on_save(self.token)
 
+    def get_headers(self) -> Dict[str, str]:
+        if self.token is None:
+            return {}
+
+        if self.token.access is not None and not self.use_cookies:
+            self.refresh()
+
+            return {"Authorization": "Bearer " + self.token.access}
+
+        if self.token.cookies is not None and self.use_cookies:
+            cookies = []
+            for c in self.token.cookies:
+                cookies.append(c + "=" + self.token.cookies[c])
+
+            return {"Cookie": ";".join(cookies)}
+
+        return {}
+
     def __call__(self, request):
-        self.refresh()
-
-        if not (self.token.access is None):
-            request.headers["Authorization"] = "Bearer {}".format(self.token.access)
-
+        request.headers.update(self.get_headers())
         return request

@@ -182,4 +182,8 @@ class AmazonLogin:
         expires_in = int(data["tokens"]["bearer"]["expires_in"])
         expires = (datetime.utcnow() + timedelta(seconds=expires_in)).timestamp()
 
-        return AmazonToken(access, refresh, expires)
+        cookies = {}
+        for c in data["tokens"]["website_cookies"]:
+            cookies[c["Name"]] = c["Value"]
+
+        return AmazonToken(access, refresh, expires, cookies)

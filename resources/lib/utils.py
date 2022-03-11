@@ -23,6 +23,7 @@ def save_token(token: AmazonToken) -> None:
         "access": token.access,
         "refresh": token.refresh,
         "expires": token.expires,
+        "cookies": token.cookies,
     }
 
     with open(path, "w", encoding="utf-8") as f:
@@ -42,7 +43,10 @@ def load_token() -> AmazonToken:
 
     with open(path) as f:
         data = json.load(f)
-        return AmazonToken(data["access"], data["refresh"], data["expires"])
+
+    return AmazonToken(
+        data["access"], data["refresh"], data["expires"], data["cookies"]
+    )
 
 
 def clear_token() -> None:

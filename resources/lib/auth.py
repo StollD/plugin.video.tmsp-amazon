@@ -24,11 +24,10 @@ def login() -> AmazonToken:
     token = load_token()
     if token is not None:
         ret = dialog.yesno("Prime Video", "You are already logged in. Log out?")
-        if ret != 1:
-            return
+        if ret == 1:
+            clear_token()
 
-        clear_token()
-        return
+        return None
 
     regions = [
         "amazon.de",

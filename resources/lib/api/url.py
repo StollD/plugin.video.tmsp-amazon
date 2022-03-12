@@ -18,6 +18,9 @@ class AmazonURL:
     def landing(self) -> str:
         return "https://www.{}/ap/maplanding".format(self.domain)
 
+    def cookies(self) -> str:
+        return "https://www.{}/ap/exchangetoken".format(self.domain)
+
     def register(self) -> str:
         return "https://api.{}/auth/register".format(self.domain)
 

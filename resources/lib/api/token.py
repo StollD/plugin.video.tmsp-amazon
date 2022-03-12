@@ -20,5 +20,14 @@ class AmazonToken:
         self.expires = expires
         self.cookies = cookies
 
-    def expired(self) -> bool:
+    def oauth_expired(self) -> bool:
         return datetime.fromtimestamp(self.expires) <= datetime.utcnow()
+
+    def cookies_expired(self) -> bool:
+        for c in self.cookies:
+            date = datetime.fromtimestamp(self.cookies[c]["expires"])
+
+            if date <= datetime.utcnow():
+                return True
+
+        return False

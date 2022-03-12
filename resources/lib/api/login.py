@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from typing import *
 from urllib.parse import parse_qs, urlencode, urlparse
 
+import dateutil.parser
 import requests
 from bs4 import BeautifulSoup
 
@@ -184,6 +185,12 @@ class AmazonLogin:
 
         cookies = {}
         for c in data["tokens"]["website_cookies"]:
-            cookies[c["Name"]] = c["Value"]
+            time = dateutil.parser.parse(c["Expires"])
+            time = datetime.utcfromtimestamp(time.timestamp())
+
+            cookies[c["Name"]] = {
+                "value": c["Value"],
+                "expires": time.timestamp(),
+            }
 
         return AmazonToken(access, refresh, expires, cookies)

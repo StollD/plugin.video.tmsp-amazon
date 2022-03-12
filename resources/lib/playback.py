@@ -152,7 +152,7 @@ def play(asin: str) -> None:
 
     headers = {"Content-Type": "application/x-www-form-urlencoded"}
     headers.update(HEADERS)
-    headers.update(auth.get_headers())
+    headers.update(session.auth.get_headers())
 
     lic += "|" + urlencode(headers)
     lic += "|widevine2Challenge=B{SSM}&includeHdcpTestKeyInLicense=true"

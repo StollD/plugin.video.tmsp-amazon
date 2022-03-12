@@ -67,7 +67,7 @@ class AmazonAuth(requests.auth.AuthBase):
 
         resp = requests.post(self.url.cookies(), headers=HEADERS, data=req)
         if resp.status_code != 200:
-            raise Exception("Cookie refresh failes")
+            raise Exception("Cookie refresh failed")
 
         data = resp.json()
 

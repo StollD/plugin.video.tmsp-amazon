@@ -27,26 +27,15 @@ def base_request(data) -> Dict[str, str]:
 
 
 def playback_request(data) -> Dict[str, str]:
-    addon = xbmcaddon.Addon()
-    hdr_formats = []
-
-    if addon.getSettingBool("enable_dovi"):
-        hdr_formats.append("DolbyVision")
-
-    if addon.getSettingBool("enable_hdr10"):
-        hdr_formats.append("Hdr10")
-
-    if len(hdr_formats) == 0:
-        hdr_formats.append("None")
-
     base = {
         "audioTrackId": "all",
         "consumptionType": "Streaming",
         "deviceBitrateAdaptationsOverride": "CVBR,CBR",
         "deviceDrmOverride": "CENC",
-        "deviceHdrFormatsOverride": ",".join(hdr_formats),
+        "deviceHdrFormatsOverride": ",".join(supported_hdr()),
         "deviceProtocolOverride": "Https",
         "deviceStreamingTechnologyOverride": "DASH",
+        "deviceVideoCodecOverride": ",".join(supported_codecs()),
         "deviceVideoQualityOverride": supported_resolution(),
         "languageFeature": "MLFv2",
         "resourceUsage": "ImmediateConsumption",

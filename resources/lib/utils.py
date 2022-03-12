@@ -96,11 +96,52 @@ def is_browser() -> bool:
     return device_type() == DEVICE_TYPE_BROWSER
 
 
+def supported_hdr() -> List[str]:
+    addon = xbmcaddon.Addon()
+    hdr = []
+
+    if addon.getSettingBool("enable_dovi"):
+        hdr.append("DolbyVision")
+
+    if addon.getSettingBool("enable_hdr10"):
+        hdr.append("Hdr10")
+
+    if len(hdr) == 0:
+        hdr.append("None")
+
+    return hdr
+
+
+def supported_codecs() -> List[str]:
+    addon = xbmcaddon.Addon()
+    codecs = ["H264"]
+
+    if addon.getSettingInt("enable_h265") == 1:
+        codecs.append("H265")
+
+    # NOTE: The following is supported by the API
+    #
+    #  codecs.append("AV1")
+    #
+    # But I am not sure if there are any titles
+    # with an AV1 stream.
+
+    return codecs
+
+
 def supported_resolution() -> str:
+    addon = xbmcaddon.Addon()
+
     # Android devices with Widevine L1 can decrypt UHD streams
     # TODO: Check if Android devices with L3 fallback gracefully
+    #
+    # H265 is required for UHD streams, so if it is disabled,
+    # only HD content (up to 1080p) can be requested.
     if is_android():
-        return "UHD"
+        if addon.getSettingInt("enable_h265") == 2:
+            return "HD"
+        else:
+            return "UHD"
 
     # Other platforms (PC) can only get SD streams
     # Higher quality requires VMP verification

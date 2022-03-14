@@ -3,5 +3,6 @@
         <setting id="enable_h265" type="enum" label="Enable H265" values="Auto|Always|Never" default="0" />
         <setting id="enable_hdr10" type="bool" label="Enable HDR10" default="false" />
         <setting id="enable_dovi" type="bool" label="Enable Dolby Vision" default="false" />
+        <setting id="audio_prefs" type="enum" label="Audio preferences" values="Prefer Dolby Atmos|Prefer higher bitrate" default="0" />
     </category>
 </settings>

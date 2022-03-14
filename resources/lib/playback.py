@@ -1,4 +1,5 @@
 import sys
+from base64 import urlsafe_b64encode
 from typing import *
 from urllib.parse import urlencode
 
@@ -10,6 +11,7 @@ from inputstreamhelper import Helper
 
 from .api import DEVICE_NAME, HEADERS, AmazonAuth, AmazonURL
 from .auth import login
+from .proxy import HOST, PORT
 from .utils import *
 
 
@@ -124,6 +126,10 @@ def play(asin: str) -> None:
 
     if drm != "CENC" or tech != "DASH":
         raise Exception("Only MPEG-DASH with Widevine is supported")
+
+    # Proxy the MPD URL and apply some patches to the manifest
+    data = {"url": urlsafe_b64encode(manifest.encode()).decode()}
+    manifest = "http://{}:{}/mpd?".format(HOST, PORT) + urlencode(data)
 
     ##
     # TODO: Support subtitles

@@ -3,6 +3,7 @@ from typing import *
 
 import requests
 import requests.auth
+import dateutil.parser
 
 from .constants import *
 from .token import AmazonToken

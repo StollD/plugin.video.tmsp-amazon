@@ -146,3 +146,16 @@ def supported_resolution() -> str:
     # Other platforms (PC) can only get SD streams
     # Higher quality requires VMP verification
     return "SD"
+
+
+def prefer_atmos() -> str:
+    addon = xbmcaddon.Addon()
+
+    # "Prefer Dolby Atmos":
+    #       Choose the Atmos track, even if a
+    #       track with a higher bitrate exists
+    #
+    # "Prefer higher bitrate":
+    #       Choose the track with the highest bitrate, even
+    #       if a Dolby Atmos track with lower bitrate exists.
+    return addon.getSettingInt("audio_prefs") == 0

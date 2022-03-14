@@ -100,7 +100,7 @@ def play(asin: str) -> None:
 
     resp = session.get(url.playback() + "?" + urlencode(data))
     if resp.status_code != 200:
-        raise Exception("Failed to get MPD")
+        raise Exception("Failed to get playback resources")
 
     data = resp.json()
 
@@ -119,9 +119,11 @@ def play(asin: str) -> None:
     host = sets[data["playbackUrls"]["defaultUrlSetId"]]
 
     manifest = host["urls"]["manifest"]["url"]
+    tech = host["urls"]["manifest"]["streamingTechnology"]
+    drm = host["urls"]["manifest"]["drm"]
 
-    if not manifest.endswith(".mpd"):
-        raise Exception("Only MPEG-DASH manifests are supported")
+    if drm != "CENC" or tech != "DASH":
+        raise Exception("Only MPEG-DASH with Widevine is supported")
 
     ##
     # TODO: Support subtitles

@@ -123,24 +123,71 @@ def patch_audio_metadata(tree: ElementTree.Element) -> None:
         adset.set("name", "{:3d} kbps".format(bitrate // 1000))
 
 
-def patch_mpd(url: str, manifest: str) -> str:
+def fix_locale(loc: str) -> str:
+    mapping = {
+        "fr-ca": "fr-CA",
+        "es-419": "es-MX",
+        "pt-br": "pb",
+        "zh-hans": "zh-CN",
+    }
+
+    l = loc.lower()
+    if l in mapping:
+        return mapping[l]
+
+    return l.split("-")[0]
+
+
+def add_subtitle(tree: ElementTree.Element, sub, forced) -> None:
+    adset = ElementTree.SubElement(tree, "dash:AdaptationSet", {
+        "lang": fix_locale(sub["languageCode"]),
+        "forced": "true" if forced else "false",
+        "codecs": "ttml",
+        "mimeType": "application/ttml+xml",
+    })
+
+    role = ElementTree.SubElement(adset, "dash:Role", {
+        "schemeIdUri": "urn:mpeg:dash:role",
+        "value": "subtitle",
+    })
+
+    rep = ElementTree.SubElement(adset, "dash:Representation", {
+        "id": sub["timedTextTrackId"],
+    })
+
+    base_url = ElementTree.SubElement(rep, "dash:BaseURL")
+    base_url.text = sub["url"]
+
+
+def add_subtitles(tree: ElementTree.Element, subs, forced) -> None:
+    for sub in forced:
+        add_subtitle(tree, sub, True)
+
+    for sub in subs:
+        add_subtitle(tree, sub, False)
+
+
+def patch_mpd(url: str, manifest: str, subs, forced) -> str:
     for namespace in NAMESPACES:
         ElementTree.register_namespace(namespace, NAMESPACES[namespace])
 
     tree = ElementTree.fromstring(manifest)
 
-    for parent in findall(tree, "./*[dash:AdaptationSet]"):
-        # Replace relative URLs with absolute ones. Required because of the proxy
-        patch_full_url(parent, url)
+    parent = find(tree, "./*[dash:AdaptationSet]")
 
-        # Split up adaptation sets with multiple representations, so that IS.A exposes
-        # all available streams to Kodi. Otherwise it will just choose the first one.
-        split_adaptation_sets(parent)
+    # Replace relative URLs with absolute ones. Required because of the proxy
+    patch_full_url(parent, url)
 
-        # Patch audio metadata, to set default streams
-        patch_audio_metadata(parent)
+    # Split up adaptation sets with multiple representations, so that IS.A exposes
+    # all available streams to Kodi. Otherwise it will just choose the first one.
+    split_adaptation_sets(parent)
 
-    txt = ElementTree.tostring(manifest, encoding="unicode")
+    # Patch audio metadata, to set default streams
+    patch_audio_metadata(parent)
+
+    add_subtitles(parent, subs, forced)
+
+    txt = ElementTree.tostring(tree, encoding="unicode")
 
     # The dash: namespace confuses IS.A, so patch it out
     txt = txt.replace("xmlns:dash", "xmlns")

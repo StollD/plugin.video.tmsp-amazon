@@ -128,7 +128,15 @@ def play(asin: str) -> None:
         raise Exception("Only MPEG-DASH with Widevine is supported")
 
     # Proxy the MPD URL and apply some patches to the manifest
-    data = {"url": urlsafe_b64encode(manifest.encode()).decode()}
+    subs = data["subtitleUrls"]
+    forced = data["forcedNarratives"]
+
+    data = {
+        "url": urlsafe_b64encode(manifest.encode()).decode(),
+        "subs": urlsafe_b64encode(json.dumps(subs).encode()).decode(),
+        "forced": urlsafe_b64encode(json.dumps(forced).encode()).decode(),
+    }
+
     manifest = "http://{}:{}/mpd?".format(HOST, PORT) + urlencode(data)
 
     ##

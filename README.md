@@ -23,8 +23,6 @@ plugin://plugin.video.tmsp-amazon/?play=B089Y5SFB1
 ### What doesn't work
 
 * There is no GUI
-* Subtitles don't work, need to copy the HTTP proxy from Sandmann
-* Dolby Atmos tracks are available from the server, but IS.A ignores them
 * There is no sync of watched status or progress
 
 
@@ -33,4 +31,4 @@ plugin://plugin.video.tmsp-amazon/?play=B089Y5SFB1
 * Kodi 19 or later
 * InputStream.Adaptive
 * An Amazon Prime Video subscription
-* A device with Widevine L1 (like an NVIDIA Shield)
+* To watch UHD or HD streams you need a device with Widevine L1 (like an NVIDIA Shield)

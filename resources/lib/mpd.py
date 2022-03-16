@@ -93,6 +93,8 @@ def patch_audio_metadata(tree: ElementTree.Element) -> None:
             continue
 
         track_id = adset.get("audioTrackId")
+        if track_id is None:
+            track_id = "audio"
 
         # This is the first track we found for that track id
         if track_id not in found:

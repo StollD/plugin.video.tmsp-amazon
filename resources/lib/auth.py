@@ -1,10 +1,12 @@
 import os
 import os.path
 import uuid
+from urllib.parse import urlparse
 
+import requests
 import xbmcgui
 
-from .api import AmazonLogin, AmazonToken, AmazonURL
+from .api import HEADERS, AmazonLogin, AmazonToken, AmazonURL
 from .utils import *
 
 
@@ -29,15 +31,8 @@ def login() -> AmazonToken:
 
         return None
 
-    regions = [
-        "amazon.de",
-        "amazon.co.uk",
-        "amazon.com",
-        "amazon.co.jp",
-    ]
-    ret = dialog.select("Please select your region", regions)
-    if ret < 0 or ret >= len(regions):
-        raise Exception("Invalid region")
+    red = requests.get("https://primevideo.com/auth-redirect", headers=HEADERS).url
+    region = urlparse(red).netloc.lstrip("www.")
 
     # Get username
     username = dialog.input("Please enter your username")
@@ -49,7 +44,7 @@ def login() -> AmazonToken:
     if password is None or len(password) == 0:
         raise Exception("Invalid password")
 
-    url = AmazonURL(regions[ret])
+    url = AmazonURL(region)
     amazon = AmazonLogin(url, username, password, device_id(), handle_2fa)
 
     token = amazon.login()
